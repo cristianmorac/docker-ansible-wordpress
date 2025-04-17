@@ -1,0 +1,16 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && \
+    apt-get install -y openssh-server iproute2 && \
+    apt install iputils-ping && \
+    mkdir /var/run/sshd && \
+    echo 'root:root' | chpasswd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+RUN apt install python3-pip -y
+
+RUN apt install python3.12-venv -y
+WORKDIR /home/ubuntu/
+
+EXPOSE 22
+CMD ["tail", "-f", "/dev/null"]
