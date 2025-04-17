@@ -1,0 +1,13 @@
+---
+- name: wordpress setup
+  hosts: web
+  become: true
+
+  pre_tasks:
+    - name: update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+  
+  roles:
+    - role: apache2
