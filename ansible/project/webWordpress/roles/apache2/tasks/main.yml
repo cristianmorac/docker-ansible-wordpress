@@ -1,0 +1,28 @@
+---  
+- name: install apache2
+  ansible.builtin.apt:
+    name: apache2
+    state: present # ultima versión
+  notify: Start apache service manualmente (sin systemd)
+
+- name: Install php depends
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - php
+    - php-common
+    - php-mysql
+    - php-xml
+    - php-xmlrpc
+    - php-curl
+    - php-gd
+    - php-imagick
+    - php-cli
+    - php-dev
+    - php-imap
+    - php-mbstring
+    - php-opcache
+    - php-soap
+    - php-zip
+    - php-intl
