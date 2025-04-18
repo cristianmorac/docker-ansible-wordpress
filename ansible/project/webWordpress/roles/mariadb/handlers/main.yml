@@ -2,6 +2,3 @@
 - name: Start MariaDB service manualmente (sin systemd)
   shell: nohup mysqld_safe > /var/log/mariadb_foreground.log 2>&1 &
 
-- name: Reload privilege tables
-  ansible.builtin.command: mysql -u root -p"{{ mariadb_root_password }}" -e "FLUSH PRIVILEGES;"
-  notify: Start MariaDB service manualmente (sin systemd)
