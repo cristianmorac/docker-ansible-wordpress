@@ -1,0 +1,62 @@
+---
+- name: Install MariaDB opc1
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - mariadb-server
+    - mariadb-client
+
+  # llamar handler: tareas repetitivas
+  notify: Start MariaDB service manualmente (sin systemd)
+
+- name: reinicio handlers
+  meta: flush_handlers   
+
+# llamar python.yaml
+- name: install python depends
+  ansible.builtin.import_tasks: python.yaml
+
+- name: Set MariaDB root password
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mariadb_root_password }}"
+    login_user: root
+    login_password: ""
+    priv: "*.*:ALL,GRANT"
+    state: present
+  ignore_errors: true # si falla continua con el playbook
+
+- name: Remove anonymous MariaDB users
+  community.mysql.mysql_user:
+    name: ""
+    host_all: yes
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: absent
+  ignore_errors: true
+
+- name: Disallow root login remotely
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ item }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: absent
+  loop:
+    - '::1' # conexión ipv6
+    - '127.0.0.1' # conexión local
+    - '%' # conexión desde cualquier ip
+
+- name: Remove test Database
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+
+- name: Reload privilege tables
+  ansible.builtin.command: mysql -u root -p"{{ mariadb_root_password }}" -e "FLUSH PRIVILEGES;"
+  notify: Start MariaDB service manualmente (sin systemd)
+  

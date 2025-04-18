@@ -1,0 +1,18 @@
+---
+- name: Python dependencias
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-dev
+      - libmysqlclient-dev
+    state: present
+
+- name: ignore PEP 668 because it's silly
+  ansible.builtin.file:
+    path: /usr/lib/python3.12/EXTERNALLY-MANAGED
+    state: absent
+
+- name: install mysqlclient via pip
+  ansible.builtin.pip:
+    name: mysqlclient
+    state: present
