@@ -59,4 +59,3 @@
 - name: Reload privilege tables
   ansible.builtin.command: mysql -u root -p"{{ mariadb_root_password }}" -e "FLUSH PRIVILEGES;"
   notify: Start MariaDB service manualmente (sin systemd)
-  
