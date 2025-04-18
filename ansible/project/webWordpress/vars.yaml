@@ -1,0 +1,4 @@
+mariadb_root_password: "mypassword"
+wp_db_name: "wordpress"
+wp_user: "wordpress"
+wp_password: "password"

@@ -3,6 +3,9 @@
   hosts: web
   become: true
 
+  vars_files:
+    - vars.yaml
+
   pre_tasks:
     - name: update apt cache
       ansible.builtin.apt:
