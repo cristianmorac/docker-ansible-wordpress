@@ -1,0 +1,83 @@
+---
+- name: Add wordpress Database
+  community.mysql.mysql_db:
+    name: "{{ wp_db_name }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: present
+    
+- name: Add wordpress user and password
+  community.mysql.mysql_user:
+    name: "{{ wp_user }}"
+    host: localhost
+    password: "{{ wp_password }}"
+    login_password: "{{ mariadb_root_password }}"
+    priv: "wordpress.*:ALL,GRANT"
+    state: present
+  ignore_errors: true
+
+- name: Download wordpress
+  ansible.builtin.get_url:
+    url: https://wordpress.org/wordpress-6.6.1.tar.gz
+    dest: /tmp/wordpress-6.6.1.tar.gz
+
+- name: Unarchive wordpress
+  ansible.builtin.unarchive:
+    src: /tmp/wordpress-6.6.1.tar.gz
+    dest: /var/www/html/
+    remote_src: yes
+
+- name: Generate wordpress config
+  ansible.builtin.copy:
+    remote_src: yes
+    src: /var/www/html/wordpress/wp-config-sample.php
+    dest: /var/www/html/wordpress/wp-config.php
+
+- name: CHange wordpress permissions
+  ansible.builtin.file:
+    path: /var/www/html/wordpress
+    mode: "0755"
+    owner: www-data
+    group: www-data
+
+- name: Configure wp-config
+  ansible.builtin.lineinfile:
+    path: /var/www/html/wordpress/wp-config.php
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line}}"
+    state: present
+  loop:
+    - { regexp: "database_name_here", line: "define( 'DB_NAME', '{{ wp_db_name }}' );"}
+    - { regexp: "username_here", line: "define( 'DB_USER', '{{ wp_user }}' );"}
+    - { regexp: "password_here", line: "define( 'DB_PASSWORD', '{{ wp_password }}' );"}
+
+- name: install curl
+  ansible.builtin.apt:
+    name: curl
+    state: present
+
+- name: Add wordpress Keys
+  ansible.builtin.shell:
+    curl -s https://api.wordpress.org/secret-key/1.1/salt/ >> /var/www/html/wordpress/wp-config.php
+
+- name: Generate Wordpress apache conf
+  ansible.builtin.copy:
+    remote_src: yes
+    src: /etc/apache2/sites-available/000-default.conf
+    dest: /etc/apache2/sites-available/wordpress.conf
+
+- name: Change wordpress DocumentRoot
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/sites-available/wordpress.conf
+    regexp: "/var/www/html"
+    line: "        DocumentRoot /var/www/html/wordpress"
+    state: present
+
+- name: Enable wordpress site
+  ansible.builtin.shell: |
+    a2ensite wordpress.conf
+    a2ensite 000-default.conf
+  args:
+    chdir: /etc/apache2/sites-available # cambiar al directorio
+
+  notify: Restart apache2 manualmente (sin systemd)
