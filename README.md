@@ -64,4 +64,5 @@ Ingresar a la carpeta `project/webWordpress` y crear los siguientes roles:
     - **vars.yaml:** variables de la base de datos
     - **playbook.yaml:** Se encuentran los roles y tareas que para instalación de wordpress
 
+**Comando para ejecutar el playbook**
 `ansible-playbook -i inventory.ini playbook.yaml.yaml`
